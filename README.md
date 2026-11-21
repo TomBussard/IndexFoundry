@@ -12,6 +12,20 @@ I ran the same three fictional price series through the application's index calc
 
 ![Equal-weight and concentrated indices on the same three synthetic price series](figures/weighting-rules.png)
 
+## Read the last index level by hand
+
+| Company | Start | Finish | Weight in the concentrated index |
+| --- | ---: | ---: | ---: |
+| Firm A | 100 | 120 | 60% |
+| Firm B | 100 | 100 | 25% |
+| Firm C | 100 | 104 | 15% |
+
+An equal allocation earns the average of 20%, 0% and 4%, or 8%. The concentrated allocation earns 0.60 × 20% + 0.25 × 0% + 0.15 × 4% = 12.60%. The interactive example varies Firm A's starting weight and keeps the other two in a 5:3 ratio. Weights are joined to prices by ticker, so column ordering cannot change the result.
+
+In the workbook workflow, I align the trading dates, convert European prices using the matching FX series, normalise prices, then compare the constructed index with its benchmark. The workbench also supports country subsets, financial-strength and momentum selections, rebalancing, and chart exports. Each session generates its own report archive.
+
+[Weighting and rebasing](index_math.py) · [Workbook input contract](workbook.py) · [Sector and style studies](workbench.py) · [Report archive](reports.py)
+
 ## Run locally
 
 ```sh
@@ -19,6 +33,6 @@ python -m pip install -r requirements.txt
 python -m streamlit run Interactive_Financial_Index_Builder.py
 ```
 
-The app reads `Data projet indices python.xlsx` in the working directory and attempts to download the original project workbook when it is absent. The workbook contains index levels, foreign exchange rates, constituent prices and fundamentals. [Index construction and data loading](Interactive_Financial_Index_Builder.py)
+The opening **Weighting study** needs no workbook or network connection. For **Workbook analysis**, select a local eight-sheet Excel file or place `Data projet indices python.xlsx` in the working directory. The app reads it locally. [Required sheet names](workbook.py)
 
-Portfolio by **Tom Bussard**.
+Tom Bussard
