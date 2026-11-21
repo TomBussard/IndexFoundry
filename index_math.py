@@ -4,7 +4,9 @@ import pandas as pd
 
 def construct_index(prices, weights):
     quotes = prices.melt(id_vars="Dates", var_name="Ticker", value_name="Price")
-    matched = quotes.merge(weights, on="Ticker", how="inner", validate="many_to_one")
+    # A ticker can appear in two sleeves. Combine its allocations before pricing the index.
+    allocations = weights.groupby("Ticker", as_index=False, sort=False)["Weight"].sum(min_count=1)
+    matched = quotes.merge(allocations, on="Ticker", how="inner", validate="many_to_one")
     # Keep the weight on its own ticker even when price columns arrive in another order.
     matched["Weighted_Price"] = matched["Price"] * matched["Weight"]
     index = matched.groupby("Dates")["Weighted_Price"].sum(min_count=1).rename("Index_Value").reset_index()
