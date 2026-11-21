@@ -1,7 +1,7 @@
 """Show how two weighting rules respond to the same component prices."""
 
 import pandas as pd
-from index_math import construct_index
+from index_math import construct_index, normalize_prices, rebalance_index
 
 
 def component_prices():
@@ -25,5 +25,18 @@ def compare():
     return pd.DataFrame(paths)
 
 
+def linked_basket():
+    """Link a new 20/60/20 basket to the previous segment's final close."""
+    prices = component_prices()
+    tickers = prices.columns.drop("Dates")
+    weights = pd.DataFrame({"Ticker": tickers, "Weight": [0.60, 0.25, 0.15]})
+    first = construct_index(normalize_prices(prices.iloc[:3]), weights)
+    next_prices = normalize_prices(prices.iloc[3:].reset_index(drop=True))
+    next_caps = pd.DataFrame({"Ticker": tickers, "CUR_MKT_CAP": [20, 60, 20]})
+    return rebalance_index(first, next_prices, next_caps).set_index("Dates")["Index_Value"]
+
+
 if __name__ == "__main__":
-    print(compare().round(2).to_string())
+    paths = compare()
+    paths["Rebalanced to 20/60/20"] = linked_basket()
+    print(paths.round(2).to_string())

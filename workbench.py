@@ -329,7 +329,7 @@ st.write(
 )
 
 # Application of the function to build the index
-index_energy = construct_index(index_energy_prices, marketcap_weights)
+index_energy = construct_index(normalized_prices, marketcap_weights)
 st.write(f"**Sector index {secteur_choisi.lower()} construit :**")
 st.dataframe(index_energy)
 
@@ -436,25 +436,9 @@ def construct_index_pays(prices, weights, qualitativ_data):
     # Verification of data after filtering
     if filtered_weights.empty:
         st.warning("No tickers match the selected countries.")
-        return pd.DataFrame({"Dates": [], "Index_Value": []})  # DataFrame vide
+        return pd.DataFrame(columns=["Dates", "Index_Value"]), selected_countries
 
-    # Merger of weights with prices
-    merged_data = pd.melt(prices, id_vars=["Dates"], var_name="Ticker", value_name="Price")
-    merged_data = pd.merge(
-        merged_data, filtered_weights, left_on="Ticker", right_on=ticker_column, how="inner"
-    )
-
-    # Calculation of weighted prices
-    merged_data["Weighted_Price"] = merged_data["Price"] * merged_data[weights.columns[1]]
-
-    # Calculation of the weighted sum for each date
-    index = merged_data.groupby("Dates")["Weighted_Price"].sum().reset_index()
-
-    # Renommer et normaliser l'indice
-    index.rename(columns={"Weighted_Price": "Index_Value"}, inplace=True)
-    index["Index_Value"] = (index["Index_Value"] / index["Index_Value"].iloc[0]) * 100
-
-    return index, selected_countries
+    return construct_index(prices, filtered_weights[["Ticker", "Weight"]]), selected_countries
 
 
 # Function application
@@ -463,7 +447,7 @@ st.write("Choose a country subset to inspect how geography changes the sector ex
 
 # Interactive application of country selection
 index_energy_pays, selected_countries = construct_index_pays(
-    index_energy_prices, marketcap_weights, qualitativ_2018
+    normalized_prices, marketcap_weights, qualitativ_2018
 )
 
 # Displaying the resulting DataFrame
