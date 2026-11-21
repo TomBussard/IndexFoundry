@@ -1,3 +1,5 @@
+from index_math import construct_index
+
 import streamlit as st
 import pandas as pd
 import os
@@ -487,24 +489,6 @@ st.markdown("""
 Nous allons maintenant construire un indice sectoriel en combinant les prix normalisés des entreprises 
 avec les pondérations calculées précédemment.
 """)
-
-# Fonction pour construire l'indice sectoriel
-def construct_index(prices, weights):
-    """
-    Construit un indice sectoriel à partir des prix des entreprises et des pondérations attribuées à chaque valeur.
-    """
-    merged_data = pd.melt(prices, id_vars=['Dates'], var_name='Ticker', value_name='Price')
-    merged_data = pd.merge(merged_data, weights, on='Ticker', how='inner')
-    merged_data['Weighted_Price'] = merged_data['Price'] * merged_data['Weight']
-
-    # Calcul de la somme pondérée pour chaque date
-    index = merged_data.groupby('Dates')['Weighted_Price'].sum().reset_index()
-    index.rename(columns={'Weighted_Price': 'Index_Value'}, inplace=True)
-
-    # Normalisation de l'indice (base 100)
-    index['Index_Value'] = (index['Index_Value'] / index['Index_Value'].iloc[0]) * 100
-
-    return index
 
 # Application de la fonction pour construire l'indice
 index_energy = construct_index(index_energy_prices, marketcap_weights)
@@ -1309,7 +1293,7 @@ else:
 
 # Vérification des poids
 total_weights = px_to_book + pe_ratio + cur_mkcap + eqy_dvd
-if total_weights != 1.0:
+if not np.isclose(total_weights, 1.0, rtol=0, atol=1e-9):
     st.error(f"La somme des poids doit être égale à 1. Actuellement : {total_weights:.2f}")
     st.stop()
 
